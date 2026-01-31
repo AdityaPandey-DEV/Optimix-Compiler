@@ -26,9 +26,9 @@
 ## 📥 Download & Installation
 You don't need to build from source! Download the latest binary for your OS:
 
-*   🐧 **Linux**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Linux/optimix)
-*   🪟 **Windows**: [Download `optimix.exe`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Windows/optimix.exe)
-*   🍎 **macOS**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Mac/optimix)
+*   🐧 **Linux**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/raw/main/compiler/Linux/optimix)
+*   🪟 **Windows**: [Download `optimix.exe`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/raw/main/compiler/Windows/optimix.exe)
+*   🍎 **macOS**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/raw/main/compiler/Mac/optimix)
 
 ### 🏃‍♂️ How to Run
 1.  **Download** the compiler file above.

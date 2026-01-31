@@ -27,18 +27,10 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
   throw std::runtime_error("Unknown token in expression");
 }
 
-std::unique_ptr<Expr> Parser::parseExpression() {
+std::unique_ptr<Expr> Parser::parseMultiplicative() {
   auto left = parsePrimary();
-
-  // Simple binary op handling (very limited precedence for now)
-  while (currentToken.type == TokenType::PLUS ||
-         currentToken.type == TokenType::MINUS ||
-         currentToken.type == TokenType::STAR ||
-         currentToken.type == TokenType::SLASH ||
-         currentToken.type == TokenType::LT ||
-         currentToken.type == TokenType::GT ||
-         currentToken.type == TokenType::EQ ||
-         currentToken.type == TokenType::NEQ) {
+  while (currentToken.type == TokenType::STAR ||
+         currentToken.type == TokenType::SLASH) {
     std::string op = currentToken.text;
     eat(currentToken.type);
     auto right = parsePrimary();
@@ -46,6 +38,34 @@ std::unique_ptr<Expr> Parser::parseExpression() {
   }
   return left;
 }
+
+std::unique_ptr<Expr> Parser::parseAdditive() {
+  auto left = parseMultiplicative();
+  while (currentToken.type == TokenType::PLUS ||
+         currentToken.type == TokenType::MINUS) {
+    std::string op = currentToken.text;
+    eat(currentToken.type);
+    auto right = parseMultiplicative();
+    left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseRelational() {
+  auto left = parseAdditive();
+  while (currentToken.type == TokenType::LT ||
+         currentToken.type == TokenType::GT ||
+         currentToken.type == TokenType::EQ ||
+         currentToken.type == TokenType::NEQ) {
+    std::string op = currentToken.text;
+    eat(currentToken.type);
+    auto right = parseAdditive();
+    left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
+  }
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseExpression() { return parseRelational(); }
 
 std::unique_ptr<Stmt> Parser::parseStatement() {
   if (currentToken.type == TokenType::KW_RETURN) {

@@ -105,6 +105,15 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     }
   }
 
+  if (currentToken.type == TokenType::KW_PRINT) {
+    eat(TokenType::KW_PRINT);
+    eat(TokenType::LPAREN);
+    auto expr = parseExpression();
+    eat(TokenType::RPAREN);
+    eat(TokenType::SEMICOLON);
+    return std::make_unique<PrintStmt>(std::move(expr));
+  }
+
   throw std::runtime_error("Unexpected token in statement: " +
                            currentToken.text);
 }

@@ -121,7 +121,8 @@ Token Lexer::identifierOrKeyword() {
   static const std::unordered_map<std::string, TokenType> keywords = {
       {"int", TokenType::KW_INT},     {"return", TokenType::KW_RETURN},
       {"if", TokenType::KW_IF},       {"else", TokenType::KW_ELSE},
-      {"while", TokenType::KW_WHILE}, {"void", TokenType::KW_VOID}};
+      {"while", TokenType::KW_WHILE}, {"void", TokenType::KW_VOID},
+      {"print", TokenType::KW_PRINT}};
 
   if (keywords.find(text) != keywords.end()) {
     return {keywords.at(text), text, m_line, m_column};

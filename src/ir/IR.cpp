@@ -39,6 +39,8 @@ std::string Instruction::toString() const {
     return "JMP_IF " + operands[0].toString() + ", " + operands[1].toString();
   case OpCode::RET:
     return "RET " + operands[0].toString();
+  case OpCode::PRINT:
+    return "PRINT " + operands[0].toString();
   case OpCode::PHI:
     s = "PHI";
     break;

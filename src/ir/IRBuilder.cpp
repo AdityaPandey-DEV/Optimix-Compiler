@@ -96,6 +96,14 @@ void IRBuilder::genStmt(const Stmt *stmt) {
 
     // Exit
     currentBB = exitBB;
+  } else if (auto *print = dynamic_cast<const PrintStmt *>(stmt)) {
+    auto val = genExpr(print->value.get());
+    // Instruction(OpCode o, Operand res) where res is unused for void
+    // instructions? Our Instruction structure assumes 'result' is the
+    // destination. For void ops, we can use a dummy.
+    ir::Instruction inst(ir::OpCode::PRINT, {ir::Operand::CONSTANT, ""});
+    inst.operands = {val};
+    emit(inst);
   }
 }
 

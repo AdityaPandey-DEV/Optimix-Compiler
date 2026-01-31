@@ -88,6 +88,16 @@ public:
   }
 };
 
+class PrintStmt : public Stmt {
+public:
+  std::unique_ptr<Expr> value;
+  PrintStmt(std::unique_ptr<Expr> v) : value(std::move(v)) {}
+  void print(int indent) const override {
+    std::cout << std::string(indent, ' ') << "PrintStmt\n";
+    value->print(indent + 2);
+  }
+};
+
 class WhileStmt : public Stmt {
 public:
   std::unique_ptr<Expr> condition;

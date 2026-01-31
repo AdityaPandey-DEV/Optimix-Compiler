@@ -20,6 +20,7 @@ enum class TokenType {
   KW_ELSE,
   KW_WHILE,
   KW_VOID,
+  KW_PRINT, // New keyword
 
   // Operators & Punctuation
   PLUS,

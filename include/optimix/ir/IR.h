@@ -23,6 +23,7 @@ enum class OpCode {
   JMP_IF, // Conditional jump
   PHI,    // SSA Phi node
   RET,
+  PRINT, // Print intrinsic
   CALL,
   ALLOCA, // Stack allocation
   LOAD,   // Load from memory

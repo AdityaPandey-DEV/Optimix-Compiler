@@ -66,6 +66,9 @@ void Interpreter::executeStmt(const Stmt *stmt) {
     }
     environment[assign->name] = evaluate(assign->value.get());
   }
+  if (auto *print = dynamic_cast<const PrintStmt *>(stmt)) {
+    std::cout << evaluate(print->value.get()) << "\n";
+  }
   if (auto *loop = dynamic_cast<const WhileStmt *>(stmt)) {
     while (evaluate(loop->condition.get())) {
       for (const auto &s : loop->body) {

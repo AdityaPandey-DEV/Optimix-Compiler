@@ -1,5 +1,7 @@
 #include "optimix/codegen/Interpreter.h"
 #include "optimix/common.h"
+#include "optimix/ir/IRBuilder.h"
+#include "optimix/ir/SSA.h"
 #include "optimix/lexer/Lexer.h"
 #include "optimix/parser/Parser.h"
 #include <iostream>
@@ -56,7 +58,22 @@ int main(int argc, char *argv[]) {
       std::cout << "Parsing successful!\n";
       ast->print(0);
 
-      std::cout << "Executing...\n";
+      ast->print(0);
+
+      std::cout << "\nGenerating IR...\n";
+      optimix::IRBuilder builder;
+      auto ir = builder.generate(*ast);
+
+      std::cout << "Raw IR:\n";
+      ir->print();
+
+      optimix::ir::SSAPass ssa;
+      ssa.run(*ir);
+
+      std::cout << "\nSSA IR:\n";
+      ir->print();
+
+      std::cout << "\nExecuting (Interpreter)...\n";
       optimix::Interpreter interpreter;
       int result = interpreter.execute(*ast);
       std::cout << "Program returned: " << result << "\n";

@@ -1,3 +1,4 @@
+#include "optimix/codegen/Interpreter.h"
 #include "optimix/common.h"
 #include "optimix/lexer/Lexer.h"
 #include "optimix/parser/Parser.h"
@@ -54,6 +55,12 @@ int main(int argc, char *argv[]) {
       auto ast = parser.parseTopLevel();
       std::cout << "Parsing successful!\n";
       ast->print(0);
+
+      std::cout << "Executing...\n";
+      optimix::Interpreter interpreter;
+      int result = interpreter.execute(*ast);
+      std::cout << "Program returned: " << result << "\n";
+
     } catch (const std::exception &e) {
       std::cerr << "Compilation failed: " << e.what() << "\n";
       return 1;

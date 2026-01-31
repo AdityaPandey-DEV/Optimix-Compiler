@@ -3,7 +3,10 @@ import os
 import sys
 
 # Configuration
-COMPILER = "./optimix"
+import argparse
+
+# Configuration
+DEFAULT_COMPILER = "./optimix"
 EXAMPLES_DIR = "examples"
 
 TESTS = [
@@ -25,14 +28,14 @@ TESTS = [
     }
 ]
 
-def run_test(test):
+def run_test(compiler, test):
     file_path = os.path.join(EXAMPLES_DIR, test["file"])
     print(f"Testing {test['file']}...", end=" ")
     
     try:
         # Run compiler
         result = subprocess.run(
-            [COMPILER, "compile", file_path],
+            [compiler, "compile", file_path],
             capture_output=True,
             text=True,
             timeout=5
@@ -45,9 +48,6 @@ def run_test(test):
 
         # Check output
         output_lines = [line.strip() for line in result.stdout.split('\n') if line.strip()]
-        
-        # We only care if the expected lines appear in the output (ignoring debug logs like "Generating IR...")
-        # A simple check is to verify the last N lines match.
         
         match = True
         for expected in test["expected_output"]:
@@ -75,13 +75,19 @@ def run_test(test):
         return False
 
 def main():
-    if not os.path.exists(COMPILER):
-        print(f"Compiler binary '{COMPILER}' not found. Please build it first.")
+    parser = argparse.ArgumentParser(description="Run Optimix regression tests")
+    parser.add_argument("--compiler", default=DEFAULT_COMPILER, help="Path to optimix executable")
+    args = parser.parse_args()
+
+    compiler_path = os.path.abspath(args.compiler)
+
+    if not os.path.exists(compiler_path):
+        print(f"Compiler binary '{compiler_path}' not found. Please build it first.")
         sys.exit(1)
         
     passed = 0
     for test in TESTS:
-        if run_test(test):
+        if run_test(compiler_path, test):
             passed += 1
             
     print(f"\nResults: {passed}/{len(TESTS)} tests passed.")

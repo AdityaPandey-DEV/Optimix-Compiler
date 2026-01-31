@@ -38,7 +38,7 @@ jobs:
     # Run Tests (Unix)
     - name: Run Tests (Unix)
       if: runner.os != 'Windows'
-      run: python3 tests/test_runner.py
+      run: python3 tests/test_runner.py --compiler ./build/bin/optimix
 
     # Organize Artifacts
     - name: Organize Artifacts

@@ -40,11 +40,24 @@ jobs:
       if: runner.os != 'Windows'
       run: python3 tests/test_runner.py
 
+    # Organize Artifacts
+    - name: Organize Artifacts
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          mkdir -p compiler/Windows
+          cp build/bin/Release/optimix.exe compiler/Windows/optimix.exe
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          mkdir -p compiler/Mac
+          cp build/bin/optimix compiler/Mac/optimix
+        else
+          mkdir -p compiler/Linux
+          cp build/bin/optimix compiler/Linux/optimix
+        fi
+
     # Upload Artifacts
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: optimix-${{ matrix.os }}
-        path: |
-          build/bin/optimix
-          build/bin/Release/optimix.exe
+        path: compiler/

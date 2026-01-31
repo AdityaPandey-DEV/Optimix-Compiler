@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Release
 
 on:
   push:
@@ -8,20 +8,43 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Set up Clang
-      uses: egor-tensin/setup-clang@v1
-      
-    - name: Build Optimix
-      run: |
-        clang++ -std=c++17 -I include src/main.cpp src/lexer/Lexer.cpp src/parser/Parser.cpp src/codegen/Interpreter.cpp src/ir/IR.cpp src/ir/IRBuilder.cpp src/ir/SSA.cpp -o optimix
-        
-    - name: Verify Build
-      run: ./optimix --help || echo "Binary built successfully"
-      
-    - name: Run Regression Tests
+    - uses: actions/checkout@v3
+
+    # Setup CMake
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+    # Build
+    - name: Build
+      run: cmake --build build --config Release
+
+    # Verify (Unix)
+    - name: Verify Binary (Unix)
+      if: runner.os != 'Windows'
+      run: ./build/bin/optimix --version
+
+    # Verify (Windows)
+    - name: Verify Binary (Windows)
+      if: runner.os == 'Windows'
+      run: .\build\bin\Release\optimix.exe --version
+
+    # Run Tests (Unix)
+    - name: Run Tests (Unix)
+      if: runner.os != 'Windows'
       run: python3 tests/test_runner.py
+
+    # Upload Artifacts
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: optimix-${{ matrix.os }}
+        path: |
+          build/bin/optimix
+          build/bin/Release/optimix.exe

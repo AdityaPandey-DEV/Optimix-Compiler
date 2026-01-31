@@ -40,9 +40,3 @@ void test_basic_tokens() {
 
   std::cout << "test_basic_tokens passed!\n";
 }
-
-int main() {
-  test_basic_tokens();
-  std::cout << "All Lexer tests passed.\n";
-  return 0;
-}

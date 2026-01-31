@@ -51,6 +51,11 @@ Open Command Prompt (cmd) or PowerShell:
 # Run it
 .\optimix.exe compile examples\factorial.optx
 ```
+## 🛠 Build from Source (Advanced)
+If you want to compile the compiler yourself (for development), you will need:
+*   **C++ Compiler**: `clang++` or `g++` (supporting C++17)
+*   **Git**: To clone the repository
+
 ```bash
 # Clone the repo
 git clone https://github.com/AdityaPandey-DEV/Optimix-Compiler.git

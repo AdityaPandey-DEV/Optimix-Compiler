@@ -23,7 +23,11 @@ Identifies and reuses results of repeating expressions.
 - **Input**: `x = a + b; y = a + b;`
 - **Output**: `temp = a + b; x = temp; y = temp;`
 
+### 4. Static Single Assignment (SSA)
+Variables are versioned (`x_1`, `x_2`) to simplify data-flow analysis and enable advanced optimizations.
+- **Status**: Implemented ✅
+
 ## Future Work
 - Loop Invariant Code Motion
 - Peephole Optimization
-- SSA (Static Single Assignment) Form construction
+- Dead Store Elimination

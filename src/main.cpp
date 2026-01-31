@@ -48,7 +48,11 @@ int main(int argc, char *argv[]) {
     size_t size = std::ftell(fp);
     std::string content(size, '\0');
     std::rewind(fp);
-    std::fread(&content[0], 1, size, fp);
+    if (std::fread(&content[0], 1, size, fp) != size) {
+      std::cerr << "Error: Could not read entire file " << filename << "\n";
+      std::fclose(fp);
+      return 1;
+    }
     std::fclose(fp);
 
     try {

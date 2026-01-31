@@ -23,8 +23,34 @@
 4.  **Optimizer**:
     *   **SSA Pass**: Renames variables (`x` -> `x_1`, `x_2`) to enable data-flow analysis.
 5.  **Interpreter**: Virtual Machine execution of the generated IR.
+## 📥 Download & Installation
+You don't need to build from source! Download the latest binary for your OS:
 
-## 🚀 Quick Start
+*   🐧 **Linux**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Linux/optimix)
+*   🪟 **Windows**: [Download `optimix.exe`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Windows/optimix.exe)
+*   🍎 **macOS**: [Download `optimix`](https://github.com/AdityaPandey-DEV/Optimix-Compiler/blob/main/compiler/Mac/optimix)
+
+### 🏃‍♂️ How to Run
+1.  **Download** the compiler file above.
+2.  **Move** it to a folder (e.g., `Downloads` or your project folder).
+3.  **Run** it with your source code.
+
+**On Linux/Mac:**
+Open Terminal:
+```bash
+# Give permission (only needed once)
+chmod +x optimix
+
+# Run it
+./optimix compile examples/factorial.optx
+```
+
+**On Windows:**
+Open Command Prompt (cmd) or PowerShell:
+```powershell
+# Run it
+.\optimix.exe compile examples\factorial.optx
+```
 ```bash
 # Clone the repo
 git clone https://github.com/AdityaPandey-DEV/Optimix-Compiler.git

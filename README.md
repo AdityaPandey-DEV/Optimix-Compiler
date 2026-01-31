@@ -10,6 +10,8 @@
 ## 🌟 Key Features (Placement Highlights)
 *   **3-Stage Architecture**: Separation of Frontend (AST), Mid-end (IR), and Backend (Interpreter).
 *   **Static Single Assignment (SSA)**: Implements variable versioning and dominance analysis for optimization.
+*   **Memory Management**: Supports Stack Allocation (`int arr[10]`) and Heap Simulation for array storage.
+*   **Intrinsic I/O**: Built-in `print()` statement for runtime output and debugging.
 *   **Control Flow Graph (CFG)**: Lowers structured code (`while`, `if`) into flat basic blocks with jump transitions.
 *   **Operator Precedence Parsing**: Hand-written recursive descent parser handling complex mathematical expressions.
 *   **Zero Dependencies**: Built with pure C++ Standard Library (no Flex/Bison/LLVM deps).
@@ -50,7 +52,38 @@ int main() {
     return result;
 }
 ```
+```
 **Output**: `120`
+
+## 📊 Comprehensive Example (`comprehensive.optx`)
+```c
+int main() {
+    int arr[10]; // Array Declaration
+    int i = 0;
+    
+    // Fill array loop
+    while (i < 5) {
+        arr[i] = i * 10;
+        i = i + 1;
+    }
+
+    // Print loop
+    int j = 0;
+    while (j < 5) {
+        print(arr[j]); // Array Access & I/O
+        j = j + 1;
+    }
+    return 0;
+}
+```
+**Output**:
+```
+0
+10
+20
+30
+40
+```
 
 ## 👨‍💻 Author
 **Aditya Pandey**

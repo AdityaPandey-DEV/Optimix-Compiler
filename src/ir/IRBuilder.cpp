@@ -49,6 +49,17 @@ ir::Operand IRBuilder::genExpr(const Expr *expr) {
     emit(ir::Instruction(op, dest, lhs, rhs));
     return dest;
   }
+
+  if (auto *arrAcc = dynamic_cast<const ArrayAccessExpr *>(expr)) {
+    auto index = genExpr(arrAcc->index.get());
+    auto dest = ir::Operand::makeVar(newTemp());
+    // LOAD dest, arrName, index
+    ir::Instruction inst(ir::OpCode::LOAD, dest);
+    inst.operands = {ir::Operand::makeVar(arrAcc->name), index};
+    emit(inst);
+    return dest;
+  }
+
   return ir::Operand::makeConst(0);
 }
 
@@ -61,12 +72,25 @@ void IRBuilder::genStmt(const Stmt *stmt) {
     auto val = genExpr(assign->value.get());
     emit(ir::Instruction(ir::OpCode::MOV, ir::Operand::makeVar(assign->name),
                          val));
+  } else if (auto *arrAssign = dynamic_cast<const ArrayAssignment *>(stmt)) {
+    auto idx = genExpr(arrAssign->index.get());
+    auto val = genExpr(arrAssign->value.get());
+    // STORE arrName, idx, val
+    ir::Instruction inst(ir::OpCode::STORE, {ir::Operand::CONSTANT, ""});
+    inst.operands = {ir::Operand::makeVar(arrAssign->name), idx, val};
+    emit(inst);
   } else if (auto *decl = dynamic_cast<const VarDecl *>(stmt)) {
     if (decl->init) {
       auto val = genExpr(decl->init.get());
       emit(ir::Instruction(ir::OpCode::MOV, ir::Operand::makeVar(decl->name),
                            val));
     }
+  } else if (auto *arrDecl = dynamic_cast<const ArrayDecl *>(stmt)) {
+    // ALLOCA arrName, size
+    ir::Instruction inst(ir::OpCode::ALLOCA, {ir::Operand::CONSTANT, ""});
+    inst.operands = {ir::Operand::makeVar(arrDecl->name),
+                     ir::Operand::makeConst(arrDecl->size)};
+    emit(inst);
   } else if (auto *loop = dynamic_cast<const WhileStmt *>(stmt)) {
     auto loopInfo = currentFunc->createBlock("loop_" + newLabel());
     auto bodyBB = currentFunc->createBlock("loop_body_" + newLabel());

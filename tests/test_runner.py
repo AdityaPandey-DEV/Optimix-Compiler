@@ -18,6 +18,10 @@ TESTS = [
     {
         "file": "print_loop.optx",
         "expected_output": ["1", "2", "3", "4", "5", "Program returned: 0"]
+    },
+    {
+        "file": "comprehensive.optx",
+        "expected_output": ["0", "10", "20", "30", "40", "Program returned: 0"]
     }
 ]
 

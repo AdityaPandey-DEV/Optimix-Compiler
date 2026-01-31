@@ -88,6 +88,10 @@ Token Lexer::nextToken() {
     return {TokenType::LBRACE, "{", m_line, startColumn};
   case '}':
     return {TokenType::RBRACE, "}", m_line, startColumn};
+  case '[':
+    return {TokenType::LBRACKET, "[", m_line, startColumn};
+  case ']':
+    return {TokenType::RBRACKET, "]", m_line, startColumn};
   case ';':
     return {TokenType::SEMICOLON, ";", m_line, startColumn};
   case ',':

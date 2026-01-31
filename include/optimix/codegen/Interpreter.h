@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace optimix {
 
@@ -13,6 +14,7 @@ public:
 
 private:
   std::unordered_map<std::string, int> environment;
+  std::unordered_map<std::string, std::vector<int>> memory;
 
   int evaluate(const Expr *expr);
   void executeStmt(const Stmt *stmt);

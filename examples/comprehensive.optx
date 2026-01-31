@@ -1,0 +1,19 @@
+int main() {
+    int arr[10];
+    int i = 0;
+    
+    // Fill array: 0, 10, 20, 30...
+    while (i < 5) {
+        arr[i] = i * 10;
+        i = i + 1;
+    }
+
+    // Print array
+    int j = 0;
+    while (j < 5) {
+        print(arr[j]);
+        j = j + 1;
+    }
+
+    return 0;
+}

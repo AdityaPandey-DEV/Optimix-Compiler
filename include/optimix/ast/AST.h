@@ -49,8 +49,47 @@ public:
   }
 };
 
+class ArrayAccessExpr : public Expr {
+public:
+  std::string name;
+  std::unique_ptr<Expr> index;
+  ArrayAccessExpr(std::string n, std::unique_ptr<Expr> i)
+      : name(std::move(n)), index(std::move(i)) {}
+  void print(int indent) const override {
+    std::cout << std::string(indent, ' ') << "ArrayAccess(" << name << ")\n";
+    index->print(indent + 2);
+  }
+};
+
 // Statements
 class Stmt : public ASTNode {};
+
+class ArrayDecl : public Stmt {
+public:
+  std::string name;
+  int size;
+  ArrayDecl(std::string n, int s) : name(std::move(n)), size(s) {}
+  void print(int indent) const override {
+    std::cout << std::string(indent, ' ') << "ArrayDecl(" << name << "[" << size
+              << "])\n";
+  }
+};
+
+class ArrayAssignment : public Stmt {
+public:
+  std::string name;
+  std::unique_ptr<Expr> index;
+  std::unique_ptr<Expr> value;
+  ArrayAssignment(std::string n, std::unique_ptr<Expr> i,
+                  std::unique_ptr<Expr> v)
+      : name(std::move(n)), index(std::move(i)), value(std::move(v)) {}
+  void print(int indent) const override {
+    std::cout << std::string(indent, ' ') << "ArrayAssignment(" << name
+              << ")\n";
+    index->print(indent + 2);
+    value->print(indent + 2);
+  }
+};
 
 class ReturnStmt : public Stmt {
 public:

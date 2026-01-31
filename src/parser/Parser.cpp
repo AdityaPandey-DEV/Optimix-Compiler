@@ -22,6 +22,15 @@ std::unique_ptr<Expr> Parser::parsePrimary() {
   } else if (currentToken.type == TokenType::IDENTIFIER) {
     std::string name = currentToken.text;
     eat(TokenType::IDENTIFIER);
+
+    // Array Access: x = arr[i] + 1;
+    if (currentToken.type == TokenType::LBRACKET) {
+      eat(TokenType::LBRACKET);
+      auto index = parseExpression();
+      eat(TokenType::RBRACKET);
+      return std::make_unique<ArrayAccessExpr>(name, std::move(index));
+    }
+
     return std::make_unique<VariableExpr>(name);
   }
   throw std::runtime_error("Unknown token in expression");
@@ -79,6 +88,18 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     eat(TokenType::KW_INT);
     std::string name = currentToken.text;
     eat(TokenType::IDENTIFIER);
+
+    // Array Declaration: int arr[10];
+    if (currentToken.type == TokenType::LBRACKET) {
+      eat(TokenType::LBRACKET);
+      int size =
+          std::stoi(currentToken.text); // Simplified: Assume constant size
+      eat(TokenType::NUMBER);
+      eat(TokenType::RBRACKET);
+      eat(TokenType::SEMICOLON);
+      return std::make_unique<ArrayDecl>(name, size);
+    }
+
     eat(TokenType::ASSIGN);
     auto init = parseExpression();
     eat(TokenType::SEMICOLON);
@@ -97,6 +118,19 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
   if (currentToken.type == TokenType::IDENTIFIER) {
     std::string name = currentToken.text;
     eat(TokenType::IDENTIFIER);
+
+    // Array Assignment: arr[i] = 5;
+    if (currentToken.type == TokenType::LBRACKET) {
+      eat(TokenType::LBRACKET);
+      auto index = parseExpression();
+      eat(TokenType::RBRACKET);
+      eat(TokenType::ASSIGN);
+      auto val = parseExpression();
+      eat(TokenType::SEMICOLON);
+      return std::make_unique<ArrayAssignment>(name, std::move(index),
+                                               std::move(val));
+    }
+
     if (currentToken.type == TokenType::ASSIGN) {
       eat(TokenType::ASSIGN);
       auto val = parseExpression();

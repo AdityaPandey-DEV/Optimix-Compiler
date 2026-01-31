@@ -28,14 +28,16 @@ enum class TokenType {
   STAR,
   SLASH,
   ASSIGN,
-  EQ,     // ==
-  NEQ,    // !=
-  LT,     // <
-  GT,     // >
-  LPAREN, // (
-  RPAREN, // )
-  LBRACE, // {
-  RBRACE, // }
+  EQ,       // ==
+  NEQ,      // !=
+  LT,       // <
+  GT,       // >
+  LPAREN,   // (
+  RPAREN,   // )
+  LBRACE,   // {
+  RBRACE,   // }
+  LBRACKET, // [
+  RBRACKET, // ]
   SEMICOLON,
   COMMA
 };

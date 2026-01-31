@@ -5,6 +5,7 @@ namespace optimix {
 
 int Interpreter::execute(const FunctionAST &function) {
   environment.clear();
+  memory.clear();
   try {
     for (const auto &stmt : function.body) {
       executeStmt(stmt.get());
@@ -24,6 +25,15 @@ int Interpreter::evaluate(const Expr *expr) {
       throw std::runtime_error("Undefined variable: " + var->name);
     }
     return environment[var->name];
+  }
+  if (auto *arrAcc = dynamic_cast<const ArrayAccessExpr *>(expr)) {
+    if (memory.find(arrAcc->name) == memory.end())
+      throw std::runtime_error("Segfault: Array " + arrAcc->name +
+                               " not declared");
+    int idx = evaluate(arrAcc->index.get());
+    if (idx < 0 || idx >= memory[arrAcc->name].size())
+      throw std::runtime_error("Segfault: Out of bounds");
+    return memory[arrAcc->name][idx];
   }
   if (auto *bin = dynamic_cast<const BinaryExpr *>(expr)) {
     int l = evaluate(bin->left.get());
@@ -75,6 +85,19 @@ void Interpreter::executeStmt(const Stmt *stmt) {
         executeStmt(s.get());
       }
     }
+  }
+  if (auto *arrDecl = dynamic_cast<const ArrayDecl *>(stmt)) {
+    memory[arrDecl->name] = std::vector<int>(arrDecl->size, 0);
+  }
+  if (auto *arrAssign = dynamic_cast<const ArrayAssignment *>(stmt)) {
+    if (memory.find(arrAssign->name) == memory.end())
+      throw std::runtime_error("Segfault: Array " + arrAssign->name +
+                               " not declared");
+    int idx = evaluate(arrAssign->index.get());
+    int val = evaluate(arrAssign->value.get());
+    if (idx < 0 || idx >= memory[arrAssign->name].size())
+      throw std::runtime_error("Segfault: Out of bounds");
+    memory[arrAssign->name][idx] = val;
   }
 }
 

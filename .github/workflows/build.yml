@@ -61,3 +61,44 @@ jobs:
       with:
         name: optimix-${{ matrix.os }}
         path: compiler/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download Windows Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: optimix-windows-latest
+        path: compiler
+
+    - name: Download Mac Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: optimix-macos-latest
+        path: compiler
+        
+    - name: Download Linux Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: optimix-ubuntu-latest
+        path: compiler
+
+    - name: Commit and Push Binaries
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git pull
+        git add compiler/
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Deploy: Update compiled binaries [skip ci]"
+          git push
+        fi

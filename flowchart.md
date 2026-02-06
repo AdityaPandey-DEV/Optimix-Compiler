@@ -1,119 +1,119 @@
-# Optimix Compiler Architecture
+# Optimix Compiler: Project Architecture
 
-## 1. Problem Statement & Project Goal
+## 1. Introduction
+**Optimix** is a custom compiler project aimed at understanding how programming languages are built. It is written completely from scratch using C++17.
 
-### The Challenge
-Building a modern compiler is often seen as a "black box" art. Many courses rely on heavy tools like Flex (lexing), Bison (parsing), or LLVM (backend), which hide the internal mechanics of how code actually runs. The challenge of **Optimix** was to build a fully functional programming language implementation **completely from scratch** in C++17, with zero external dependencies.
-
-### The Objective
-The goal of this project is to construct a **dual-mode language processor** that demonstrates two distinct ways of handling code:
-1.  **Immediate Interpretation**: Executing the Abstract Syntax Tree (AST) directly for rapid feedback and debugging.
-2.  **Advanced Compilation**: Lowering the AST into a custom **Linear Intermediate Representation (IR)**, constructing a **Control Flow Graph (CFG)**, and performing industrial-grade **Static Single Assignment (SSA)** optimization.
-
-This capability highlights the bridge between high-level logic (structured control flow) and low-level machine logic (jumps, phi-functions, and flat instructions).
+The main purpose of this project is to learn:
+1.  How code is read by a computer (Lexing & Parsing).
+2.  How code is executed directly (Interpretation).
+3.  How code is optimized for better performance (SSA Form).
 
 ---
 
-## 2. Detailed System Flowchart
-
-The following flowchart illustrates the complete lifecycle of an `.optx` source file, showing how it branches into either direct execution (Interpreter) or compilation/optimization (IR Builder).
+## 2. Project Flowchart (Full System)
+This diagram shows the complete journey of a source code file (`.optx`) inside the Optimix system.
 
 ```mermaid
 graph TD
     %% Styling
     classDef input fill:#f9f,stroke:#333,stroke-width:2px;
     classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
-    classDef artifact fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
-    classDef store fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
     classDef output fill:#333,stroke:#fff,stroke-width:2px,color:#fff;
 
-    %% 1. Source Input
-    Source([Source Code\n.optx]) -->|Raw Chars| Lexer
-    class Source input
+    %% Main Flow
+    Input([Source Code .optx]) --> Lexer(Lexer)
+    Lexer -->|Tokens| Parser(Parser)
+    Parser --> AST[Abstract Syntax Tree AST]
+    
+    %% Split
+    AST -->|Option 1: Run| Interpreter(Interpreter)
+    AST -->|Option 2: Optimize| IRBuilder(IR Builder)
+    
+    Interpreter --> Output([Program Output])
+    
+    IRBuilder --> IR[Intermediate Code]
+    IR --> SSA(SSA Optimizer)
+    SSA --> OptIR[Final Optimized Code]
 
-    %% 2. Frontend Subsystem
-    subgraph Frontend [Frontend: Analysis & Structure]
-        direction TB
-        Lexer(Lexer\nTokenization) -->|Token Stream| Parser(Parser\nRecursive Descent)
-        Parser --> AST[Abstract Syntax Tree\nAST]
-        
-        note1[Handles: Comments,\nWhitespace, Keywords] -.-> Lexer
-        note2[Handles: Operator Precedence,\nGrammar Rules] -.-> Parser
-    end
-    class Lexer,Parser process
-    class AST artifact
-
-    %% Branching point
-    AST -->|Mode: Run| InterpreterPath
-    AST -->|Mode: Compile| CompilerPath
-
-    %% 3. Interpreter Subsystem
-    subgraph InterpreterPath [Execution Path: Interpreter]
-        direction TB
-        Interpreter(Interpreter Engine)
-        Interpreter -->|Read/Write| Env[(Runtime Environment\nVariables & Arrays)]
-        Env -->|Result| Output1([Console Output])
-    end
-    class Interpreter process
-    class Env store
-    class Output1 output
-
-    %% 4. Compiler & Optimization Subsystem
-    subgraph CompilerPath [Optimization Path: IR & SSA]
-        direction TB
-        IRBuilder(IR Builder\nAST Lowering) -->|Linear IR| CFG[Control Flow Graph\nBasic Blocks]
-        
-        CFG -->|Analysis| Dominance(Dominance Analysis\nDominance Frontier)
-        Dominance -->|Phi Insertion| SSAPass(SSA Construction\nVariable Renaming)
-        
-        SSAPass --> OptimizedIR[Optimized SSA\nIntermediate Representation]
-        
-        OptimizedIR -->|Visual/Debug| Output2([IR Dump Output])
-    end
-    class IRBuilder,Dominance,SSAPass process
-    class CFG,OptimizedIR artifact
-    class Output2 output
-
-    %% Relationships
-    Interpreter -.->|Executes| AST
-    IRBuilder -.->|Lowers| AST
+    %% Classes
+    class Input,Output input;
+    class Lexer,Parser,Interpreter,IRBuilder,SSA process;
+    class AST,IR,OptIR output;
 ```
 
 ---
 
-## 3. Deep Dive: Component Analysis
+## 3. Module Breakdown
 
-### 3.1 Frontend: From Text to Meaning
-The frontend is responsible for understanding the structure of the code.
+### 3.1 Frontend (Reading the Code)
+The frontend is the first part of the compiler. Its job is to read the text file and understand what it says.
 
-*   **Lexer (`src/lexer/Lexer.cpp`)**: 
-    *   **Role**: The "scanner". It reads the raw file character by character.
-    *   **Mechanism**: It groups characters into meaningful **Tokens** (e.g., `while`, `i`, `=`, `10`). It intelligently skips "noise" like comments (`//`) and whitespace.
-    *   **Output**: A clean stream of tokens ready for parsing.
+*   **Lexer**: Reads characters (A, B, C...) and groups them into words called "Tokens" (like `if`, `while`, `x`, `10`).
+*   **Parser**: Checks the grammar rules. For example, it ensures every `(` has a closing `)`. It builds a tree structure called the **AST**.
 
-*   **Parser (`src/parser/Parser.cpp`)**:
-    *   **Role**: The "architect". It ensures the tokens follow the grammatical rules of the language.
-    *   **Mechanism**: Uses **Recursive Descent** for statements (handling nested blocks like `if` inside `while`) and **Operator Precedence Parsing** for expressions (ensuring multiplication `*` happens before addition `+`).
-    *   **Output**: An **Abstract Syntax Tree (AST)**, a tree structure that represents the program's logic hierarchy.
+**Frontend Flowchart:**
 
-### 3.2 Execution Path: The Interpreter
-The interpreter (`src/codegen/Interpreter.cpp`) allows code to run immediately, similar to Python or Ruby.
+```mermaid
+graph LR
+    classDef process fill:#fff9c4,stroke:#fbc02d,stroke-width:2px;
+    
+    Code["Source Code (Text)"] --> Lexer(Lexer)
+    Lexer --> Tokens["Tokens (Words)"]
+    Tokens --> Parser(Parser)
+    Parser --> AST["AST (Tree Structure)"]
+    
+    class Lexer,Parser process;
+```
 
-*   **Mechanism**: It performs a depth-first traversal of the AST.
-*   **State Management**: It maintains an **Environment** (a hash map) to store variable values (`int x = 5`).
-*   **Safety**: It checks for runtime errors, such as accessing undeclared variables or out-of-bounds array indices, throwing exceptions to handle them gracefully.
-*   **Memory**: Simulates both stack variables and heap-allocated arrays (`std::vector`).
+---
 
-### 3.3 Optimization Path: IR & SSA
-This is the "industrial" side of the compiler (`src/ir/`), preparing code for advanced analysis.
+### 3.2 Interpreter (Executing the Code)
+The Interpreter allows us to run the code immediately. It is useful for testing.
 
-*   **IR Builder (`src/ir/IRBuilder.cpp`)**:
-    *   **Lowering**: Converts the hierarchical AST into a flat, sequential list of instructions called **Linear IR**.
-    *   **3-Address Code**: Uses simple instructions like `t1 = a + b` where every operation has at most two inputs and one output.
-    *   **Control Flow Graph (CFG)**: Breaks the detailed instructions into **Basic Blocks** (sequences of code without jumps) connected by branches. This represents loops and if-statements as a graph.
+*   **How it works**: It walks through the AST tree node by node.
+*   **Memory**: It saves variables (like `x = 5`) in a map.
+*   **Result**: It gives the output directly to the console.
 
-*   **SSA (Static Single Assignment) (`src/ir/SSA.cpp`)**:
-    *   **Concept**: A property where every variable is assigned exactly once. `x = 1; x = 2;` becomes `x1 = 1; x2 = 2;`.
-    *   **Dominance**: Computes the "Dominator Tree" to understand which blocks fundamentally control the execution of others.
-    *   **Phi Functions**: Inserts special `phi` nodes at merge points (e.g., after an `if-else`) to reconcile different versions of a variable coming from different execution paths.
-    *   **Benefit**: SSA form makes data-flow analysis (like determining if a variable is constant or unused) largely trivial and extremely fast.
+**Interpreter Flowchart:**
+
+```mermaid
+graph TD
+    classDef process fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+
+    Start((Start)) --> Node{Node Type?}
+    
+    Node -- "Variable Decl" --> Save["Save Variable to Memory"]
+    Node -- "Print Statement" --> Show["Show Output on Screen"]
+    Node -- "Calculation (+ - * /)" --> Math["Compute Result"]
+    
+    Save --> Next[Next Statement]
+    Show --> Next
+    Math --> Next
+    
+    class Save,Show,Math process;
+```
+
+---
+
+### 3.3 Optimizer (Improving the Code)
+This is the advanced part of the project. It transforms the code into a better version.
+
+*   **IR Builder**: Converts the tree (AST) into a simple list of instructions (Linear Code). This is easier for computers to analyze.
+*   **SSA (Static Single Assignment)**: This is a smart technique used by big compilers like GCC and LLVM. It renames variables so every variable is assigned only once (e.g., `x` becomes `x1`, `x2`). This helps to find and remove useless code.
+
+**Optimization Flowchart:**
+
+```mermaid
+graph TD
+    classDef process fill:#e1bee7,stroke:#6a1b9a,stroke-width:2px;
+
+    AST["AST (Tree)"] --> Convert(Convert to Linear Code)
+    Convert --> CFG["Control Flow Graph (Basic Blocks)"]
+    
+    CFG --> Analysis(Analyze Dependencies)
+    Analysis --> Rename(Rename Variables x -> x1)
+    
+    Rename --> Final["Optimized SSA Form"]
+    
+    class Convert,Analysis,Rename process;
+```

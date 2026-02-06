@@ -1,12 +1,14 @@
 # Optimix Compiler: Project Architecture
 
-## 1. Introduction
-**Optimix** is a custom compiler project aimed at understanding how programming languages are built. It is written completely from scratch using C++17.
+## 1. Problem Statement
+Many students learn Compiler Design using automated tools (like Flex and Bison), which hide the actual internal working of a compiler.
 
-The main purpose of this project is to learn:
-1.  How code is read by a computer (Lexing & Parsing).
-2.  How code is executed directly (Interpretation).
-3.  How code is optimized for better performance (SSA Form).
+The **Main Problem** is to understand what actually happens inside a compiler.
+**Solution**: To solve this, the **Optimix** project builds a compiler **completely from scratch** using C++.
+It demonstrates:
+1.  **Lexing & Parsing**: Reading code without external tools.
+2.  **Simulation**: Running code directly (Interpreter).
+3.  **Optimization**: Making code faster using advanced math (SSA Form).
 
 ---
 

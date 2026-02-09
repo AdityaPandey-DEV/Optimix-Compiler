@@ -1,4 +1,4 @@
-#include "optimix/codegen/Interpreter.h"
+#include "optimix/codegen/IRInterpreter.h"
 #include "optimix/common.h"
 #include "optimix/ir/IRBuilder.h"
 #include "optimix/ir/SSA.h"
@@ -77,9 +77,9 @@ int main(int argc, char *argv[]) {
       std::cout << "\nSSA IR:\n";
       ir->print();
 
-      std::cout << "\nExecuting (Interpreter)...\n";
-      optimix::Interpreter interpreter;
-      int result = interpreter.execute(*ast);
+      std::cout << "\nExecuting (Optimized IR)...\n";
+      optimix::IRInterpreter irInterpreter;
+      int result = irInterpreter.execute(*ir);
       std::cout << "Program returned: " << result << "\n";
 
     } catch (const std::exception &e) {

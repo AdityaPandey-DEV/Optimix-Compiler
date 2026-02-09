@@ -27,19 +27,18 @@ graph TD
     Lexer -->|Tokens| Parser(Parser)
     Parser --> AST[Abstract Syntax Tree AST]
     
-    %% Split
-    AST -->|Option 1: Run| Interpreter(Interpreter)
-    AST -->|Option 2: Optimize| IRBuilder(IR Builder)
-    
-    Interpreter --> Output([Program Output])
+    AST --> IRBuilder(IR Builder)
     
     IRBuilder --> IR[Intermediate Code]
     IR --> SSA(SSA Optimizer)
     SSA --> OptIR[Final Optimized Code]
+    
+    OptIR --> Interpreter(IR Interpreter)
+    Interpreter --> Output([Program Output])
 
     %% Classes
     class Input,Output input;
-    class Lexer,Parser,Interpreter,IRBuilder,SSA process;
+    class Lexer,Parser,IRBuilder,SSA,Interpreter process;
     class AST,IR,OptIR output;
 ```
 
@@ -70,10 +69,10 @@ graph LR
 ---
 
 ### 3.2 Interpreter (Executing the Code)
-The Interpreter allows us to run the code immediately. It is useful for testing.
+The Interpreter now runs the **Optimized IR** instead of the raw AST. This means we execute the code after it has been improved.
 
-*   **How it works**: It walks through the AST tree node by node.
-*   **Memory**: It saves variables (like `x = 5`) in a map.
+*   **How it works**: It walks through the list of instructions (IR) linearly.
+*   **Memory**: It simulates registers and memory for variables.
 *   **Result**: It gives the output directly to the console.
 
 **Interpreter Flowchart:**
@@ -82,17 +81,23 @@ The Interpreter allows us to run the code immediately. It is useful for testing.
 graph TD
     classDef process fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
 
-    Start((Start)) --> Node{Node Type?}
+    Start((Start)) --> Fetch[Fetch Instruction]
     
-    Node -- "Variable Decl" --> Save["Save Variable to Memory"]
-    Node -- "Print Statement" --> Show["Show Output on Screen"]
-    Node -- "Calculation (+ - * /)" --> Math["Compute Result"]
+    Fetch --> Decode{OpCode?}
     
-    Save --> Next[Next Statement]
-    Show --> Next
-    Math --> Next
+    Decode -- "ADD/SUB/MUL" --> Math["Compute & Store in Reg"]
+    Decode -- "MOV" --> Move["Copy Value"]
+    Decode -- "JMP" --> Jump["Jump to Label"]
+    Decode -- "PRINT" --> IO["Print to Screen"]
     
-    class Save,Show,Math process;
+    Math --> Next[Next Instruction]
+    Move --> Next
+    Jump --> Next
+    IO --> Next
+    
+    Next --> Fetch
+    
+    class Math,Move,Jump,IO process;
 ```
 
 ---

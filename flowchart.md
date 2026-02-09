@@ -31,7 +31,7 @@ graph TD
         Source --> ReadChar[Read Characters]
         ReadChar --> RmWS[Remove Whitespace]
         RmWS --> Tokenize[Generate Tokens]
-        Tokenize --> LexErr{Valid?}
+        Tokenize --> LexErr{"Valid?"}
         LexErr -- No --> ErrHandler[Error Handling]
         LexErr -- Yes --> Tokens["Token Stream"]
     end
@@ -39,8 +39,8 @@ graph TD
     %% Phase 2: Syntax Analysis
     subgraph "Phase 2: Syntax Analysis (Parser)"
         Tokens --> CheckGrammar[Check Grammar Rules]
-        CheckGrammar --> BuildAST[Build Parse Tree (AST)]
-        BuildAST --> SynErr{Syntax OK?}
+        CheckGrammar --> BuildAST["Build Parse Tree (AST)"]
+        BuildAST --> SynErr{"Syntax OK?"}
         SynErr -- No --> ErrHandler
         SynErr -- Yes --> AST["Abstract Syntax Tree"]
     end
@@ -52,7 +52,7 @@ graph TD
     %% Phase 3: Semantic & IR Gen
     subgraph "Phase 3: IR Generation (IRBuilder)"
         AST --> WalkAST[Walk AST]
-        WalkAST --> GenTemps[Generate Temp Vars (t0, t1...)]
+        WalkAST --> GenTemps["Generate Temp Vars (t0, t1...)"]
         GenTemps --> GenQuad[Generate Quadruples/Instructions]
         GenQuad --> RawIR["Raw Intermediate Code"]
     end
@@ -60,7 +60,7 @@ graph TD
     %% Phase 4: Optimization
     subgraph "Phase 4: Optimization (SSA)"
         RawIR --> AnalyzeCFG[Analyze Control Flow]
-        AnalyzeCFG --> RenameVars[Rename Variables (SSA)]
+        AnalyzeCFG --> RenameVars["Rename Variables (SSA)"]
         RenameVars --> OptIR["Optimized IR (SSA Form)"]
     end
 

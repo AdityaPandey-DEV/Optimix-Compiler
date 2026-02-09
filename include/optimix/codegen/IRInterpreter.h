@@ -16,6 +16,9 @@ private:
   // Since SSA variables are unique, we can just map name -> value
   std::map<std::string, int> registers;
 
+  // Memory for arrays
+  std::map<std::string, std::vector<int>> memory;
+
   // For recursion support, we would need a stack of frames.
   // But since the current AST interpreter is also simple,
   // we'll start with a single frame for the main function.

@@ -5,6 +5,7 @@ namespace optimix {
 
 int IRInterpreter::execute(const ir::Function &function) {
   registers.clear();
+  memory.clear();
   lastBlock = nullptr;
 
   if (function.blocks.empty())
@@ -149,6 +150,41 @@ int IRInterpreter::execute(const ir::Function &function) {
       } else if (inst.op == ir::OpCode::NEQ) {
         setVal(inst.result.value,
                getVal(inst.operands[0]) != getVal(inst.operands[1]));
+      }
+      // Memory / Arrays
+      else if (inst.op == ir::OpCode::ALLOCA) {
+        // ALLOCA name, size
+        std::string name = inst.operands[0].value;
+        int size = getVal(inst.operands[1]);
+        memory[name] = std::vector<int>(size, 0);
+      } else if (inst.op == ir::OpCode::STORE) {
+        // STORE name, idx, val
+        std::string name = inst.operands[0].value;
+        int idx = getVal(inst.operands[1]);
+        int val = getVal(inst.operands[2]);
+        if (memory.find(name) == memory.end()) {
+          // Runtime error: Array not found
+          std::cerr << "Runtime Error: Array " << name << " not found.\n";
+          return -1;
+        }
+        if (idx < 0 || idx >= memory[name].size()) {
+          std::cerr << "Runtime Error: Index out of bounds.\n";
+          return -1;
+        }
+        memory[name][idx] = val;
+      } else if (inst.op == ir::OpCode::LOAD) {
+        // LOAD dest, name, idx
+        std::string name = inst.operands[0].value;
+        int idx = getVal(inst.operands[1]);
+        if (memory.find(name) == memory.end()) {
+          std::cerr << "Runtime Error: Array " << name << " not found.\n";
+          return -1;
+        }
+        if (idx < 0 || idx >= memory[name].size()) {
+          std::cerr << "Runtime Error: Index out of bounds.\n";
+          return -1;
+        }
+        setVal(inst.result.value, memory[name][idx]);
       }
     }
 

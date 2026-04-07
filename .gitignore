@@ -7,3 +7,9 @@ build/
 bin/
 optimix
 ok
+
+# Web app
+web/node_modules/
+web/dist/
+web/public/optimix.js
+web/public/optimix.wasm

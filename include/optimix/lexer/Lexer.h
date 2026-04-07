@@ -3,6 +3,7 @@
 #include "Token.h"
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace optimix {
 
@@ -11,6 +12,9 @@ public:
   Lexer(std::string_view source);
 
   Token nextToken();
+
+  // Collect all tokens into a vector (used by WASM API)
+  std::vector<Token> tokenizeAll();
 
 private:
   char peek() const;

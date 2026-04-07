@@ -1,0 +1,49 @@
+# Optimix Compiler → WebAssembly build via Emscripten
+# Usage: make -f Makefile.wasm
+
+EMCC = emcc
+
+# All C++ source files (existing compiler + new API layer)
+SOURCES = src/lexer/Lexer.cpp \
+          src/parser/Parser.cpp \
+          src/ir/IR.cpp \
+          src/ir/IRBuilder.cpp \
+          src/ir/SSA.cpp \
+          src/codegen/IRInterpreter.cpp \
+          src/codegen/Interpreter.cpp \
+          src/api/serializer.cpp \
+          src/api/api.cpp
+
+# Compiler flags
+CXXFLAGS = -std=c++17 -I include -O2
+
+# Emscripten flags
+EMFLAGS = --bind \
+          -s WASM=1 \
+          -s MODULARIZE=1 \
+          -s EXPORT_NAME="OptimixModule" \
+          -s ALLOW_MEMORY_GROWTH=1 \
+          -s ENVIRONMENT='web' \
+          -s NO_EXIT_RUNTIME=1 \
+          -s EXPORTED_RUNTIME_METHODS='["UTF8ToString"]' \
+          -s SINGLE_FILE=0
+
+# Output location (into web/public for Vite to serve)
+OUTPUT_DIR = web/public
+OUTPUT = $(OUTPUT_DIR)/optimix.js
+
+.PHONY: all clean
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(SOURCES)
+	@mkdir -p $(OUTPUT_DIR)
+	$(EMCC) $(SOURCES) $(CXXFLAGS) $(EMFLAGS) -o $(OUTPUT)
+	@echo ""
+	@echo "✅ WASM build complete!"
+	@echo "   $(OUTPUT_DIR)/optimix.js"
+	@echo "   $(OUTPUT_DIR)/optimix.wasm"
+	@echo ""
+
+clean:
+	rm -f $(OUTPUT_DIR)/optimix.js $(OUTPUT_DIR)/optimix.wasm

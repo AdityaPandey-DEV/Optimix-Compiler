@@ -143,4 +143,15 @@ Token Lexer::number() {
   return {TokenType::NUMBER, text, m_line, m_column};
 }
 
+std::vector<Token> Lexer::tokenizeAll() {
+  std::vector<Token> tokens;
+  while (true) {
+    Token tok = nextToken();
+    tokens.push_back(tok);
+    if (tok.type == TokenType::END_OF_FILE)
+      break;
+  }
+  return tokens;
+}
+
 } // namespace optimix

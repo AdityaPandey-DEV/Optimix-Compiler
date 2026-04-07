@@ -1,6 +1,7 @@
 #pragma once
 
 #include "optimix/ast/AST.h"
+#include "optimix/codegen/IRInterpreter.h"
 #include "optimix/ir/IR.h"
 #include "optimix/lexer/Token.h"
 #include <sstream>
@@ -88,17 +89,16 @@ std::string serializeInstruction(const ir::Instruction &inst);
 std::string serializeBasicBlock(const ir::BasicBlock *bb);
 std::string serializeIR(const ir::Function *func);
 
-// Execution result
-std::string serializeExecutionResult(int returnValue,
-                                     const std::vector<std::string> &output);
+// Execution result with steps
+std::string serializeExecutionStep(const ExecutionStep &step);
+std::string serializeExecutionResult(const ExecutionResult &result);
 
 // Full pipeline result
 std::string serializeFullResult(const std::string &tokensJson,
                                 const std::string &astJson,
                                 const std::string &rawIRJson,
                                 const std::string &ssaIRJson,
-                                int returnValue,
-                                const std::vector<std::string> &output,
+                                const ExecutionResult &execResult,
                                 bool success,
                                 const std::string &error = "");
 

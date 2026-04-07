@@ -221,4 +221,183 @@ void IRInterpreter::setVal(const std::string &name, int val) {
   registers[name] = val;
 }
 
+ExecutionStep IRInterpreter::captureStep(const std::string &blockLabel,
+                                         int instrIdx,
+                                         const std::string &opCode,
+                                         const std::string &instrText) {
+  ExecutionStep step;
+  step.blockLabel = blockLabel;
+  step.instructionIndex = instrIdx;
+  step.opCode = opCode;
+  step.instructionText = instrText;
+  step.registers = registers;
+  step.memory = memory;
+  step.output = outputLines;
+  step.returnValue = 0;
+  step.hasReturn = false;
+  return step;
+}
+
+ExecutionResult IRInterpreter::executeWithSteps(const ir::Function &function) {
+  ExecutionResult result;
+  result.returnValue = 0;
+
+  registers.clear();
+  memory.clear();
+  lastBlock = nullptr;
+  outputLines.clear();
+
+  if (function.blocks.empty()) {
+    return result;
+  }
+
+  ir::BasicBlock *currentBlock = function.blocks.front().get();
+  int maxSteps = 10000; // Prevent infinite loops
+
+  while (currentBlock && maxSteps-- > 0) {
+    ir::BasicBlock *nextBlock = nullptr;
+    ir::BasicBlock *prevBlockForPhi = lastBlock;
+
+    int instrIdx = 0;
+    for (auto it = currentBlock->instructions.begin();
+         it != currentBlock->instructions.end(); ++it, ++instrIdx) {
+      const auto &inst = *it;
+
+      // Capture step before execution
+      result.steps.push_back(
+          captureStep(currentBlock->label, instrIdx, inst.toString(), inst.toString()));
+
+      if (inst.op == ir::OpCode::PHI) {
+        std::string labelNeeded =
+            prevBlockForPhi ? prevBlockForPhi->label : "";
+        for (size_t j = 0; j < inst.operands.size(); j += 2) {
+          if (j + 1 < inst.operands.size()) {
+            if (inst.operands[j + 1].value == labelNeeded) {
+              setVal(inst.result.value, getVal(inst.operands[j]));
+              break;
+            }
+          }
+        }
+        continue;
+      }
+
+      // Arithmetic
+      if (inst.op == ir::OpCode::ADD) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) + getVal(inst.operands[1]));
+      } else if (inst.op == ir::OpCode::SUB) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) - getVal(inst.operands[1]));
+      } else if (inst.op == ir::OpCode::MUL) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) * getVal(inst.operands[1]));
+      } else if (inst.op == ir::OpCode::DIV) {
+        int r = getVal(inst.operands[1]);
+        setVal(inst.result.value, r != 0 ? getVal(inst.operands[0]) / r : 0);
+      }
+      // MOV
+      else if (inst.op == ir::OpCode::MOV) {
+        setVal(inst.result.value, getVal(inst.operands[0]));
+      }
+      // PRINT
+      else if (inst.op == ir::OpCode::PRINT) {
+        int val = getVal(inst.operands[0]);
+        outputLines.push_back(std::to_string(val));
+      }
+      // JMP
+      else if (inst.op == ir::OpCode::JMP) {
+        std::string targetLabel = inst.operands[0].value;
+        for (auto &b : function.blocks) {
+          if (b->label == targetLabel) {
+            nextBlock = b.get();
+            break;
+          }
+        }
+        break;
+      }
+      // JMP_IF
+      else if (inst.op == ir::OpCode::JMP_IF) {
+        int cond = getVal(inst.operands[1]);
+        if (cond) {
+          std::string targetLabel = inst.operands[0].value;
+          for (auto &b : function.blocks) {
+            if (b->label == targetLabel) {
+              nextBlock = b.get();
+              break;
+            }
+          }
+          break;
+        }
+      }
+      // RET
+      else if (inst.op == ir::OpCode::RET) {
+        int val = inst.operands.empty() ? 0 : getVal(inst.operands[0]);
+        // Capture final step with return value
+        ExecutionStep retStep =
+            captureStep(currentBlock->label, instrIdx, "RET", inst.toString());
+        retStep.returnValue = val;
+        retStep.hasReturn = true;
+        result.steps.push_back(retStep);
+
+        result.returnValue = val;
+        result.output = outputLines;
+        return result;
+      }
+      // Comparisons
+      else if (inst.op == ir::OpCode::LT) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) < getVal(inst.operands[1]) ? 1 : 0);
+      } else if (inst.op == ir::OpCode::GT) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) > getVal(inst.operands[1]) ? 1 : 0);
+      } else if (inst.op == ir::OpCode::EQ) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) == getVal(inst.operands[1]) ? 1 : 0);
+      } else if (inst.op == ir::OpCode::NEQ) {
+        setVal(inst.result.value,
+               getVal(inst.operands[0]) != getVal(inst.operands[1]) ? 1 : 0);
+      }
+      // Memory
+      else if (inst.op == ir::OpCode::ALLOCA) {
+        std::string name = inst.operands[0].value;
+        int size = getVal(inst.operands[1]);
+        memory[name] = std::vector<int>(size, 0);
+      } else if (inst.op == ir::OpCode::STORE) {
+        std::string name = inst.operands[0].value;
+        int idx = getVal(inst.operands[1]);
+        int val = getVal(inst.operands[2]);
+        if (memory.count(name) && idx >= 0 && idx < (int)memory[name].size()) {
+          memory[name][idx] = val;
+        }
+      } else if (inst.op == ir::OpCode::LOAD) {
+        std::string name = inst.operands[0].value;
+        int idx = getVal(inst.operands[1]);
+        if (memory.count(name) && idx >= 0 && idx < (int)memory[name].size()) {
+          setVal(inst.result.value, memory[name][idx]);
+        }
+      }
+    }
+
+    lastBlock = currentBlock;
+    if (nextBlock) {
+      currentBlock = nextBlock;
+    } else {
+      bool foundCurrent = false;
+      ir::BasicBlock *fallthrough = nullptr;
+      for (auto &b : function.blocks) {
+        if (foundCurrent) {
+          fallthrough = b.get();
+          break;
+        }
+        if (b.get() == currentBlock)
+          foundCurrent = true;
+      }
+      currentBlock = fallthrough;
+    }
+  }
+
+  result.output = outputLines;
+  return result;
+}
+
 } // namespace optimix

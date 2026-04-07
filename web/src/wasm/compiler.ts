@@ -76,6 +76,17 @@ function compileViaWASM(source: string): CompilationResult {
     const rawIRText = data.rawIR ? formatIR(data.rawIR) : '';
     const ssaIRText = data.ssaIR ? formatIR(data.ssaIR) : '';
 
+    // Parse execution steps from real C++ execution
+    const executionSteps = (data.executionSteps || []).map((step: any) => ({
+      blockLabel: step.blockLabel || '',
+      instructionIndex: step.instructionIndex || 0,
+      opCode: step.opCode || '',
+      registers: step.registers || {},
+      memory: step.memory || {},
+      output: step.output || [],
+      returnValue: step.hasReturn ? step.returnValue : undefined,
+    }));
+
     return {
       success: data.success,
       error: data.error || undefined,
@@ -87,7 +98,7 @@ function compileViaWASM(source: string): CompilationResult {
       ssaIRText,
       returnValue: data.returnValue || 0,
       output: data.output || [],
-      executionSteps: [], // WASM doesn't provide step-by-step yet
+      executionSteps,
     };
   } catch (e) {
     // If WASM call fails, fall back to TypeScript

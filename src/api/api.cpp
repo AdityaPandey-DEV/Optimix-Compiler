@@ -99,11 +99,10 @@ std::string applySSA(const std::string &source) {
   }
 }
 
-// Phase 5: Full compile — runs all phases, returns complete result
+// Phase 5: Full compile — runs all phases, returns complete result with steps
 std::string compile(const std::string &source) {
   std::string tokensJson, astJson, rawIRJson, ssaIRJson;
-  int returnValue = 0;
-  std::vector<std::string> output;
+  ExecutionResult execResult;
 
   try {
     // Phase 1: Tokens
@@ -134,31 +133,15 @@ std::string compile(const std::string &source) {
 
     ssaIRJson = api::serializeIR(ir.get());
 
-    // Phase 5: Execute
-    // Capture print() output by redirecting cout
-    std::ostringstream execOutput;
-    std::cout.rdbuf(execOutput.rdbuf());
-
+    // Phase 5: Execute with step-by-step capture (REAL C++ execution)
     IRInterpreter interpreter;
-    returnValue = interpreter.execute(*ir);
-
-    std::cout.rdbuf(oldCout);
-
-    // Parse captured output into lines
-    std::string outStr = execOutput.str();
-    std::istringstream iss(outStr);
-    std::string line;
-    while (std::getline(iss, line)) {
-      if (!line.empty()) {
-        output.push_back(line);
-      }
-    }
+    execResult = interpreter.executeWithSteps(*ir);
 
     return api::serializeFullResult(tokensJson, astJson, rawIRJson, ssaIRJson,
-                                    returnValue, output, true);
+                                    execResult, true);
   } catch (const std::exception &e) {
     return api::serializeFullResult(tokensJson, astJson, rawIRJson, ssaIRJson,
-                                    returnValue, output, false, e.what());
+                                    execResult, false, e.what());
   }
 }
 

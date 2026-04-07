@@ -307,18 +307,70 @@ std::string serializeIR(const ir::Function *func) {
       {{"name", J::string(func->name)}, {"blocks", J::array(blocks)}});
 }
 
-// ---- Execution Result ----
+// ---- Execution Steps Serialization ----
 
-std::string
-serializeExecutionResult(int returnValue,
-                         const std::vector<std::string> &output) {
+std::string serializeExecutionStep(const ExecutionStep &step) {
+  // Registers
+  std::vector<std::string> regItems;
+  for (const auto &kv : step.registers) {
+    regItems.push_back(J::string(kv.first) + ":" + J::number(kv.second));
+  }
+  std::string regsJson = "{";
+  for (size_t i = 0; i < regItems.size(); ++i) {
+    if (i > 0) regsJson += ",";
+    regsJson += regItems[i];
+  }
+  regsJson += "}";
+
+  // Memory (arrays)
+  std::vector<std::string> memItems;
+  for (const auto &kv : step.memory) {
+    std::vector<std::string> cells;
+    for (int val : kv.second) {
+      cells.push_back(J::number(val));
+    }
+    memItems.push_back(J::string(kv.first) + ":" + J::array(cells));
+  }
+  std::string memJson = "{";
+  for (size_t i = 0; i < memItems.size(); ++i) {
+    if (i > 0) memJson += ",";
+    memJson += memItems[i];
+  }
+  memJson += "}";
+
+  // Output
   std::vector<std::string> outItems;
-  for (const auto &line : output) {
+  for (const auto &line : step.output) {
     outItems.push_back(J::string(line));
   }
 
-  return J::object({{"returnValue", J::number(returnValue)},
-                    {"output", J::array(outItems)}});
+  std::vector<std::pair<std::string, std::string>> fields = {
+      {"blockLabel", J::string(step.blockLabel)},
+      {"instructionIndex", J::number(step.instructionIndex)},
+      {"opCode", J::string(step.opCode)},
+      {"registers", regsJson},
+      {"memory", memJson},
+      {"output", J::array(outItems)},
+      {"hasReturn", J::boolean(step.hasReturn)},
+      {"returnValue", J::number(step.returnValue)}};
+
+  return J::object(fields);
+}
+
+std::string serializeExecutionResult(const ExecutionResult &result) {
+  std::vector<std::string> outItems;
+  for (const auto &line : result.output) {
+    outItems.push_back(J::string(line));
+  }
+
+  std::vector<std::string> stepItems;
+  for (const auto &step : result.steps) {
+    stepItems.push_back(serializeExecutionStep(step));
+  }
+
+  return J::object({{"returnValue", J::number(result.returnValue)},
+                    {"output", J::array(outItems)},
+                    {"steps", J::array(stepItems)}});
 }
 
 // ---- Full Pipeline Result ----
@@ -326,12 +378,17 @@ serializeExecutionResult(int returnValue,
 std::string serializeFullResult(const std::string &tokensJson,
                                 const std::string &astJson,
                                 const std::string &rawIRJson,
-                                const std::string &ssaIRJson, int returnValue,
-                                const std::vector<std::string> &output,
+                                const std::string &ssaIRJson,
+                                const ExecutionResult &execResult,
                                 bool success, const std::string &error) {
   std::vector<std::string> outItems;
-  for (const auto &line : output) {
+  for (const auto &line : execResult.output) {
     outItems.push_back(J::string(line));
+  }
+
+  std::vector<std::string> stepItems;
+  for (const auto &step : execResult.steps) {
+    stepItems.push_back(serializeExecutionStep(step));
   }
 
   return J::object({{"success", J::boolean(success)},
@@ -340,8 +397,9 @@ std::string serializeFullResult(const std::string &tokensJson,
                     {"ast", astJson},
                     {"rawIR", rawIRJson},
                     {"ssaIR", ssaIRJson},
-                    {"returnValue", J::number(returnValue)},
-                    {"output", J::array(outItems)}});
+                    {"returnValue", J::number(execResult.returnValue)},
+                    {"output", J::array(outItems)},
+                    {"executionSteps", J::array(stepItems)}});
 }
 
 } // namespace api
